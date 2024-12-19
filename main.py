@@ -178,6 +178,7 @@ while True:
                 enemies.remove(enemy)
                 points += 1
                 txt_points = font.render(str(points), True, (255, 255, 255))
+                
     for enemy in enemies:
         if enemy.rect.colliderect(player.rect):
             enemies.remove(enemy)
