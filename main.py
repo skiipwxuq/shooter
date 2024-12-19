@@ -79,8 +79,10 @@ class Slimeenemy(pygame.sprite.Sprite):
         pygame.image.load('slime_animation_2.png'), pygame.image.load('slime_animation_3.png'),]
         self.cooldown = time.time() + 1
         self.rect = self.animation_images[0].get_rect()
-        self.rect.x = x
-        self.rect.y = y
+        self.x = x
+        self.y = y
+        self.rect.x = x - display_scroll[0]
+        self.rect.y = y - display_scroll[1]
         self.animation_count = 0
         self.reset_offset = 0
         self.offset_x = random.randrange(-150,150)
@@ -103,26 +105,32 @@ class Slimeenemy(pygame.sprite.Sprite):
             self.reset_offset -= 1
 
         if player.rect.x + self.offset_x > self.rect.x-display_scroll[0]:
-            self.rect.x += 1
+            self.x += 1
         elif player.rect.x + self.offset_x < self.rect.x-display_scroll[0]:
-            self.rect.x -= 1
+            self.x -= 1
 
         if player.rect.y + self.offset_y > self.rect.y-display_scroll[1]:
-            self.rect.y += 1
+            self.y += 1
         elif player.rect.y + self.offset_y < self.rect.y-display_scroll[1]:
-            self.rect.y -= 1
-        
-        display.blit(pygame.transform.scale(self.animation_images[self.animation_count//4], (32,30)), (self.rect.x-display_scroll[0], self.rect.y-display_scroll[1]))
+            self.y -= 1
+        self.rect.x = self.x-display_scroll[0]
+        self.rect.y = self.y-display_scroll[1]
+        display.blit(pygame.transform.scale(self.animation_images[self.animation_count//4], (32,30)), (self.rect.x, self.rect.y))
 
-enemies: list[Slimeenemy] = [Slimeenemy(400,300), Slimeenemy(400,300), Slimeenemy(400,300), Slimeenemy(400,300), Slimeenemy(400,300), Slimeenemy(400,300), Slimeenemy(400,300), Slimeenemy(400,300), Slimeenemy(400,300), Slimeenemy(400,300), Slimeenemy(400,300), Slimeenemy(400,300), Slimeenemy(400,300), Slimeenemy(400,300), Slimeenemy(400,300), Slimeenemy(400,300), Slimeenemy(400,300)]
+enemies: list[Slimeenemy] = []
 
 player = Player(400,300,32,32)
 
 display_scroll = [0,0]
 
+for _ in range(10):
+    enemies.append(Slimeenemy(600,300))
+
 # enemy_bullets = []
 
 player_bullets: list[Bullet] = []
+
+finish = False
 
 while True:
     display.fill((24,164,86))
@@ -153,29 +161,30 @@ while True:
     if keys[pygame.K_s]:
         display_scroll[1] += 5
 
-    player.main(display)
+    if not finish:
+        player.main(display)
 
-    for bullet in player_bullets:
-        bullet.main(display)
+        for bullet in player_bullets:
+            bullet.main(display)
 
-    # for bullet in enemy_bullets:
-    #     bullet.main(display)
+        for enemy in enemies:
+            enemy.main(display)
 
     for enemy in enemies:
-        enemy.main(display)
-
-    for bullet in player_bullets:
-        for enemy in enemies:
-            if bullet.rect.colliderect((enemy.rect.left-display_scroll[0], enemy.rect.top-display_scroll[1]), (enemy.rect.width, enemy.rect.height)):
+        for bullet in player_bullets:
+            if bullet.rect.colliderect(enemy.rect):
+                print(bullet.rect.x)
                 player_bullets.remove(bullet)
                 enemies.remove(enemy)
                 points += 1
                 txt_points = font.render(str(points), True, (255, 255, 255))
     for enemy in enemies:
-        if enemy.rect.colliderect((player.rect.left-display_scroll[0], player.rect.top-display_scroll[1]), (player.rect.width, player.rect.height)):
+        if enemy.rect.colliderect(player.rect):
             enemies.remove(enemy)
-            player.remove(player)
+            finish = True
 
     display.blit(txt_points, (10, 60))
+    if finish:
+        print('end')
     clock.tick(60)
     pygame.display.update()
