@@ -121,6 +121,9 @@ enemies: list[Slimeenemy] = []
 
 player = Player(400,300,32,32)
 
+counter = 5
+pygame.time.set_timer(pygame.USEREVENT, 1000)
+
 display_scroll = [0,0]
 
 for _ in range(10):
@@ -132,8 +135,12 @@ player_bullets: list[Bullet] = []
 
 finish = False
 
+run = True
+
 while True:
     display.fill((24,164,86))
+
+    #t1 = time.time()
 
     mouse_x, mouse_y = pygame.mouse.get_pos()
 
@@ -141,6 +148,15 @@ while True:
         if event.type == pygame.QUIT:
             sys.exit()
             pygame.QUIT
+        
+        if event.type == pygame.USEREVENT: 
+            counter -= 1
+            if counter == 0: 
+                сounter = 5
+                for _ in range(10):
+                    enemies.append(Slimeenemy(600,300))
+            if event.type == pygame.QUIT:
+                run = False 
             
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
@@ -186,6 +202,11 @@ while True:
 
     display.blit(txt_points, (10, 60))
     if finish:
-        print('end')
+        text2 = 'YOU LOSE'
+        font = pygame.font.SysFont(None, 48)
+        lose_text = font.render(text2, True, (255,255,255))
+        display.blit(lose_text, (310, 280))
+
+
     clock.tick(60)
     pygame.display.update()
