@@ -126,18 +126,28 @@ pygame.time.set_timer(pygame.USEREVENT, 1000)
 
 display_scroll = [0,0]
 
-for _ in range(10):
-    enemies.append(Slimeenemy(600,300))
+def spawn_enemies():
+    for _ in range(5):
+        x1 = random.randint(player.rect.x - 900, 0)
+        y1 = random.randint(player.rect.y - 700, 0)
+        x2 = random.randint(0, player.rect.x + 900)
+        y2 = random.randint(0, player.rect.y + 700)
+        enemies.append(Slimeenemy(x1,y1))
+        enemies.append(Slimeenemy(x2,y2))
 
 # enemy_bullets = []
 
 player_bullets: list[Bullet] = []
 
 finish = False
+spawn_enemies()
 
-run = True
+delay_spawn = 5
+spawn_timer = time.time() + delay_spawn
 
-while True:
+exit = False
+
+while not exit:
     display.fill((24,164,86))
 
     #t1 = time.time()
@@ -146,38 +156,43 @@ while True:
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            sys.exit()
-            pygame.QUIT
-        
-        if event.type == pygame.USEREVENT: 
-            counter -= 1
-            if counter == 0: 
-                сounter = 5
-                for _ in range(10):
-                    enemies.append(Slimeenemy(600,300))
-            if event.type == pygame.QUIT:
-                run = False 
-            
+            exit = True
+
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_r and finish:
+                print('restart')
+                player.rect.x = 400
+                player.rect.y = 300
+                display_scroll = [0, 0]
+                enemies.clear()
+                points = 0
+                spawn_enemies()
+                finish = False
+ 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 player_bullets.append(Bullet(player.rect.centerx,player.rect.centery, mouse_x, mouse_y, 15))
+
+    if spawn_timer - time.time() <= 0:
+        spawn_enemies()
+        spawn_timer = time.time() + delay_spawn
 
     keys = pygame.key.get_pressed()
 
     pygame.draw.rect(display, (255,255,255), (100-display_scroll[0],100-display_scroll[1],16,16))
 
-    if keys[pygame.K_a]:
-        display_scroll[0] -= 5
-        player.moving_left = True
-    if keys[pygame.K_d]:
-        display_scroll[0] += 5
-        player.moving_right = True
-    if keys[pygame.K_w]:
-        display_scroll[1] -= 5
-    if keys[pygame.K_s]:
-        display_scroll[1] += 5
 
     if not finish:
+        if keys[pygame.K_a]:
+            display_scroll[0] -= 5
+            player.moving_left = True
+        if keys[pygame.K_d]:
+            display_scroll[0] += 5
+            player.moving_right = True
+        if keys[pygame.K_w]:
+            display_scroll[1] -= 5
+        if keys[pygame.K_s]:
+            display_scroll[1] += 5
         player.main(display)
 
         for bullet in player_bullets:
